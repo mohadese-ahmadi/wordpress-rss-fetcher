@@ -10,26 +10,26 @@ class PRSS_Helper {
         return wp_trim_words(strip_tags($html), $len);
     }
 
-    public static function download_featured_image($item, $post_id) {
+    public static function download_featured_image($post_id, $img_url) {
 
-        $enclosure = $item->get_enclosure();
-        if (!$enclosure) return;
+        if (!$img_url) return;
 
-        $img = $enclosure->get_link();
-        if (!$img) return;
-
-        $tmp = download_url($img);
+        // دانلود تصویر در فایل tmp
+        $tmp = download_url($img_url);
         if (is_wp_error($tmp)) return;
 
         $file = [
-            'name' => basename($img),
+            'name' => basename($img_url),
             'tmp_name' => $tmp
         ];
 
+        // بارگذاری تصویر در رسانه وردپرس
         $id = media_handle_sideload($file, $post_id);
 
+        // اگر موفق بود → thumbnail ست کن
         if (!is_wp_error($id)) {
             set_post_thumbnail($post_id, $id);
         }
     }
+
 }

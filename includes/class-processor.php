@@ -69,6 +69,74 @@ class PRSS_Processor {
         return $total;
     }
 
+    /**
+     * استخراج بهترین تصویر ممکن برای خبر
+     */
+    private static function get_high_quality_image($article_url, $content, $item) {
+
+        // 1) OG IMAGE از صفحه‌ی اصلی خبر
+        $response = wp_remote_get($article_url, [
+            'timeout' => 6,
+            'redirection' => 2,
+            'sslverify' => false,
+            'user-agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+        ]);
+
+        if (!is_wp_error($response)) {
+            $body = wp_remote_retrieve_body($response);
+
+            if (preg_match('/<meta\s+(?:property|name)="og:image"\s+content="([^"]+)"/i', $body, $matches)) {
+
+                $img = $matches[1];
+
+                // اگر لینک نسبی بود
+                if (strpos($img, 'http') !== 0) {
+                    $p = parse_url($article_url);
+                    $img = $p['scheme'] . '://' . $p['host'] . $img;
+                }
+
+                $img = self::clean_img_url($img);
+                return $img;
+            }
+        }
+
+        // 2) media:content یا media:thumbnail
+        $media = $item->get_item_tags("http://search.yahoo.com/mrss/", "content");
+        if ($media && isset($media[0]["attribs"][""]["url"])) {
+            return self::clean_img_url($media[0]["attribs"][""]["url"]);
+        }
+
+        $thumb = $item->get_item_tags("http://search.yahoo.com/mrss/", "thumbnail");
+        if ($thumb && isset($thumb[0]["attribs"][""]["url"])) {
+            return self::clean_img_url($thumb[0]["attribs"][""]["url"]);
+        }
+
+        // 3) enclosure داخل RSS
+        if ($item->get_enclosure() && $item->get_enclosure()->get_link()) {
+            return self::clean_img_url($item->get_enclosure()->get_link());
+        }
+
+        // 4) اولین IMG از محتوای HTML خبر
+        if (preg_match('/<img[^>]+src=[\'"]([^\'"]+)[\'"]/i', $content, $m)) {
+            return self::clean_img_url($m[1]);
+        }
+
+        return false;
+    }
+
+    /**
+     * حذف سایزهای کوچک مثل -150x150 از لینک تصویر
+     */
+    private static function clean_img_url($url) {
+
+        // حذف سایزهای وردپرسی مثل -150x150
+        $url = preg_replace('/-\d+x\d+(?=\.(jpg|jpeg|png|webp))/i', '', $url);
+
+        // حذف query string از URL
+        $url = preg_replace('/\?.*/', '', $url);
+
+        return $url;
+    }
 
 
     /**
@@ -153,8 +221,14 @@ class PRSS_Processor {
                 update_post_meta($post_id, 'source_date', $publish_date);
             }
 
-            // Download featured image
-            PRSS_Helper::download_featured_image($item, $post_id);
+            // استخراج بهترین تصویر ممکن
+            $image_url = self::get_high_quality_image($link, $content, $item);
+
+            // دانلود و ست کردن تصویر شاخص
+            if ($image_url) {
+                PRSS_Helper::download_featured_image($post_id, $image_url);
+            }
+
 
             $feed['imported']++;
             $imported_now++;
