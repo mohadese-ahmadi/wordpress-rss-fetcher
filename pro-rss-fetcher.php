@@ -102,7 +102,7 @@ class Pro_RSS_Fetcher {
             $feeds = get_option($this->option_name, array());
             $feeds[] = array(
                 'id'          => uniqid('feed_'),
-                'url'         => esc_url_raw($_POST['feed_url']),
+                'url'         => sanitize_text_field($_POST['feed_url']),
                 'cat'         => intval($_POST['feed_category']),
                 'author'      => intval($_POST['feed_author']),
                 'status'      => sanitize_text_field($_POST['post_status']),
