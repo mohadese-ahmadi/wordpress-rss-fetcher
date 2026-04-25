@@ -125,10 +125,34 @@ class PRSS_Processor {
             if (!$post_id) continue;
 
             // metadata
-            update_post_meta($post_id, 'prss_hash', $hash);
-            update_post_meta($post_id, 'source_link', $link);
-            update_post_meta($post_id, 'source_name', $rss->get_title());
-            update_post_meta($post_id, 'source_date', $publish_date);
+            // گزینه‌ها
+            $opts = isset($feed['options']) ? $feed['options'] : [];
+
+            // چکیده
+            if (!isset($opts['excerpt']) || $opts['excerpt']) {
+                // هیچ اقدامی لازم نیست، چکیده خودکار درست می‌شود
+            } else {
+                wp_update_post([
+                    'ID' => $post_id,
+                    'post_excerpt' => ''
+                ]);
+            }
+
+            // لینک منبع
+            if (!empty($opts['source_link'])) {
+                update_post_meta($post_id, 'source_link', $link);
+            }
+
+            // نام منبع
+            if (!empty($opts['source_name'])) {
+                update_post_meta($post_id, 'source_name', $rss->get_title());
+            }
+
+            // تاریخ خبر
+            if (!empty($opts['source_date'])) {
+                update_post_meta($post_id, 'source_date', $publish_date);
+            }
+
             // Download featured image
             PRSS_Helper::download_featured_image($item, $post_id);
 

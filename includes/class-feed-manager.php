@@ -13,7 +13,7 @@ class PRSS_Feeds {
         update_option(self::$option, $feeds);
     }
 
-    public static function add_feed($url, $cat, $items, $status, $author, $filter) {
+    public static function add_feed($url, $cat, $items, $status, $author, $filter, $options = []) {
 
         $feeds = self::get_feeds();
 
@@ -27,11 +27,20 @@ class PRSS_Feeds {
             'author'    => $author,
             'filter'    => $filter,
             'imported'  => 0,
-            'last_run'  => null
+            'last_run'  => null,
+            
+            'options'   => [
+                'excerpt'      => !empty($options['excerpt']),
+                'source_link'  => !empty($options['source_link']),
+                'source_name'  => !empty($options['source_name']),
+                'source_date'  => !empty($options['source_date']),
+            ]
         ];
 
+        update_option('prss_feeds', $feeds);
         self::save($feeds);
     }
+
 
     public static function delete_feed($id) {
 

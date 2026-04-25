@@ -104,6 +104,15 @@ class PRSS_Admin_Page {
                                 <input type="text" name="filter" style="width:100%;" placeholder="مثال: قتل، قمار، سیاسی">
                             </td>
                         </tr>
+                        <tr>
+                            <th>گزینه‌های محتوا</th>
+                            <td>
+                                <label><input type="checkbox" name="opt_excerpt" checked> چکیده خبر</label><br>
+                                <label><input type="checkbox" name="opt_source_link" checked> لینک منبع</label><br>
+                                <label><input type="checkbox" name="opt_source_name"> نام منبع</label><br>
+                                <label><input type="checkbox" name="opt_source_date"> تاریخ انتشار</label>
+                            </td>
+                        </tr>
 
                     </table>
 
@@ -215,8 +224,15 @@ class PRSS_Admin_Page {
             intval($_POST['items']),
             sanitize_text_field($_POST['status']),
             intval($_POST['author']),
-            sanitize_text_field($_POST['filter'])
+            sanitize_text_field($_POST['filter']),
+            [
+                'excerpt'      => isset($_POST['opt_excerpt']),
+                'source_link'  => isset($_POST['opt_source_link']),
+                'source_name'  => isset($_POST['opt_source_name']),
+                'source_date'  => isset($_POST['opt_source_date']),
+            ]
         );
+
 
         wp_redirect(admin_url('admin.php?page=prss-feeds'));
         exit;
