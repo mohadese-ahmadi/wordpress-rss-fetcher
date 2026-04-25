@@ -110,7 +110,7 @@ class PRSS_Processor {
                     }
                 }
             }
-
+            $publish_date = $item->get_date('Y-m-d H:i:s');
             // Insert post
             $post_id = wp_insert_post([
                 'post_title'   => wp_strip_all_tags($title),
@@ -119,7 +119,7 @@ class PRSS_Processor {
                 'post_status'  => $feed['status'],
                 'post_author'  => $feed['author'],
                 'post_category'=> [$feed['cat']],
-                'post_date'    => $item->get_date('Y-m-d H:i:s')
+                'post_date' => $publish_date
             ]);
 
             if (!$post_id) continue;
@@ -128,7 +128,7 @@ class PRSS_Processor {
             update_post_meta($post_id, 'prss_hash', $hash);
             update_post_meta($post_id, 'source_link', $link);
             update_post_meta($post_id, 'source_name', $rss->get_title());
-
+            update_post_meta($post_id, 'source_date', $publish_date);
             // Download featured image
             PRSS_Helper::download_featured_image($item, $post_id);
 

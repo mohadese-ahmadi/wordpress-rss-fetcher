@@ -128,6 +128,7 @@ class PRSS_Admin_Page {
                         <thead>
                             <tr>
                                 <th>فید</th>
+                                <th>دسته‌بندی</th>
                                 <th>وضعیت</th>
                                 <th>تعداد</th>
                                 <th>وارد شده</th>
@@ -145,7 +146,12 @@ class PRSS_Admin_Page {
                         
                             <tr>
                                 <td><?php echo esc_html($feed['url']); ?></td>
-
+                                <td>
+                                    <?php
+                                    $cat = get_category($feed['cat']);
+                                    echo $cat ? $cat->name : '—';
+                                    ?>
+                                </td>
                                 <td>
                                     <?php echo $feed['active']
                                         ? '<span style="color:green;font-weight:bold;">فعال</span>'
